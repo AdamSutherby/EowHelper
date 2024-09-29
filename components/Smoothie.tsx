@@ -187,6 +187,7 @@ export default function SmoothieRecipeApp() {
   const [finishedRecipes, setFinishedRecipes] = useState(0)
   const { toast } = useToast()
 
+// eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     updateSuggestedRecipes()
     setFinishedRecipes(Object.values(checkedRecipes).filter(Boolean).length)
