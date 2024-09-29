@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { useToast } from "@/hooks/use-toast"
 
 const ingredients = [
   'Bubble Kelp', 'RiverHorse', 'Refreshing Grapes', 'Electro Apple',
@@ -184,6 +185,7 @@ export default function SmoothieRecipeApp() {
   const [suggestedRecipes, setSuggestedRecipes] = useState<Array<{ recipe: string, ingredients: [string, string] }>>([])
   const [checkedRecipes, setCheckedRecipes] = useState<Record<string, boolean>>({})
   const [finishedRecipes, setFinishedRecipes] = useState(0)
+  const { toast } = useToast()
 
   useEffect(() => {
     updateSuggestedRecipes()
@@ -191,42 +193,43 @@ export default function SmoothieRecipeApp() {
   }, [inventory, checkedRecipes])
 
   const updateSuggestedRecipes = () => {
-    const availableRecipes: Array<{ recipe: string, ingredients: [string, string], totalIngredients: number }> = []
-    
+    const availableRecipes: Record<string, { ingredients: [string, string], totalIngredients: number }> = {}
+
     for (const [ingredient1, recipes] of Object.entries(recipeMap)) {
       for (const [ingredient2, recipe] of Object.entries(recipes)) {
         if (
-          !checkedRecipes[recipe] && // Ensure the recipe isn't checked
+          !checkedRecipes[recipe] &&
           inventory[ingredient1] > 0 &&
           inventory[ingredient2] > 0 &&
           (ingredient1 !== ingredient2 || inventory[ingredient1] > 1)
         ) {
-          availableRecipes.push({
-            recipe,
-            ingredients: [ingredient1, ingredient2],
-            totalIngredients: inventory[ingredient1] + inventory[ingredient2]
-          })
+          const totalIngredients = inventory[ingredient1] + inventory[ingredient2]
+          if (!availableRecipes[recipe] || totalIngredients > availableRecipes[recipe].totalIngredients) {
+            availableRecipes[recipe] = {
+              ingredients: [ingredient1, ingredient2],
+              totalIngredients
+            }
+          }
         }
       }
     }
-  
-    // Sort by total ingredients (descending) and then by menu order
-    availableRecipes.sort((a, b) => {
-      if (b.totalIngredients !== a.totalIngredients) {
-        return b.totalIngredients - a.totalIngredients
-      }
-      return sortedRecipes.indexOf(a.recipe) - sortedRecipes.indexOf(b.recipe)
-    })
-  
-    // Only keep the top 3 recipes
-    setSuggestedRecipes(availableRecipes.slice(0, 3))
+
+    const sortedAvailableRecipes = Object.entries(availableRecipes)
+      .sort(([recipeA, dataA], [recipeB, dataB]) => {
+        if (dataB.totalIngredients !== dataA.totalIngredients) {
+          return dataB.totalIngredients - dataA.totalIngredients
+        }
+        return sortedRecipes.indexOf(recipeA) - sortedRecipes.indexOf(recipeB)
+      })
+      .slice(0, 3)
+      .map(([recipe, data]) => ({ recipe, ingredients: data.ingredients }))
+
+    setSuggestedRecipes(sortedAvailableRecipes)
   }
-  
 
   const updateIngredient = (ingredient: string, value: number) => {
     setInventory(prev => {
       const newInventory = { ...prev, [ingredient]: Math.max(0, value) }
-      // Remove ingredients with 0 count
       if (newInventory[ingredient] === 0) {
         delete newInventory[ingredient]
       }
@@ -234,34 +237,30 @@ export default function SmoothieRecipeApp() {
     })
   }
 
-  const toggleRecipe = (recipe: string, ingredients?: [string, string]) => {
-    setCheckedRecipes(prev => ({ ...prev, [recipe]: !prev[recipe] }))
-    
-    // Only update inventory and recipe list if the recipe was not previously checked
-    if (ingredients && !checkedRecipes[recipe]) {
-      setInventory(prev => {
-        const newInventory = { ...prev }
-        newInventory[ingredients[0]] = Math.max(0, (newInventory[ingredients[0]] || 0) - 1)
-        newInventory[ingredients[1]] = Math.max(0, (newInventory[ingredients[1]] || 0) - 1)
-        
-        // Remove ingredients with 0 count
-        if (newInventory[ingredients[0]] === 0) delete newInventory[ingredients[0]]
-        if (newInventory[ingredients[1]] === 0) delete newInventory[ingredients[1]]
-        
-        return newInventory
-      })
-    }
-  
-    // Recalculate suggested recipes after toggling
-    updateSuggestedRecipes();
+  const toggleRecipe = (recipe: string, ingredients?: string[]) => {
+    setCheckedRecipes(prev => {
+      const newState = { ...prev, [recipe]: !prev[recipe] }
+      if (newState[recipe]) {
+        toast({
+          title: `${recipe} made!`,
+          duration: 1000,
+        })
+        if (ingredients) {
+          const newInventory = { ...inventory }
+          ingredients.forEach(ingredient => {
+            newInventory[ingredient] = (newInventory[ingredient] || 0) - 1
+          })
+          setInventory(newInventory)
+        }
+      }
+      return newState
+    })
   }
-  
-  
 
   const getRecipeIngredients = (recipe: string) => {
     const ingredients: string[] = []
     for (const [ingredient1, recipes] of Object.entries(recipeMap)) {
-      for (const [ingredient2, recipeName]  of Object.entries(recipes)) {
+      for (const [ingredient2, recipeName] of Object.entries(recipes)) {
         if (recipeName === recipe) {
           ingredients.push(`${ingredient1} + ${ingredient2}`)
         }
@@ -278,13 +277,13 @@ export default function SmoothieRecipeApp() {
   }
 
   return (
-    <div className="container mx-auto p-4 bg-gray-900 text-white min-h-screen">
+    <div className="bg-gray-900 text-white rounded-lg shadow-lg">
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-3xl font-bold">Smoothie Recipe App</h1>
+        <h1 className="text-2xl font-bold">Smoothie Recipe App</h1>
         <Button onClick={resetApp} variant="outline" className='text-black'>Reset</Button>
       </div>
       
-      <div className="grid grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         {ingredients.map(ingredient => (
           <div key={ingredient} className="bg-gray-800 p-4 rounded shadow">
             <Image
@@ -294,7 +293,7 @@ export default function SmoothieRecipeApp() {
               height={100}
               className="mb-2 mx-auto"
             />
-            <p className="text-center mb-2">{ingredient}</p>
+            <p className="text-center mb-2 text-sm">{ingredient}</p>
             <div className="flex items-center justify-center mb-2">
               <Button 
                 onClick={() => updateIngredient(ingredient, (inventory[ingredient] || 0) - 1)}
@@ -308,7 +307,7 @@ export default function SmoothieRecipeApp() {
                 type="number"
                 value={inventory[ingredient] || 0}
                 onChange={(e) => updateIngredient(ingredient, parseInt(e.target.value) || 0)}
-                className="w-16 mx-2 text-center bg-gray-700"
+                className="w-12 mx-1 text-center bg-gray-700 text-sm"
               />
               <Button 
                 onClick={() => updateIngredient(ingredient, (inventory[ingredient] || 0) + 1)}
@@ -323,7 +322,7 @@ export default function SmoothieRecipeApp() {
         ))}
       </div>
 
-      <h2 className="text-2xl font-bold mb-2">Suggested Recipes</h2>
+      <h2 className="text-xl font-bold mb-2">Suggested Recipes</h2>
       <ul className="mb-8 space-y-2">
         {suggestedRecipes.map(({ recipe, ingredients }) => (
           <li key={recipe} className="flex items-center justify-between bg-gray-800 p-2 rounded">
@@ -331,18 +330,18 @@ export default function SmoothieRecipeApp() {
               <Image
                 src={`/images/${ingredients[0].toLowerCase().replace(' ', '_')}.png`}
                 alt={ingredients[0]}
-                width={30}
-                height={30}
-                className="mr-2"
+                width={20}
+                height={20}
+                className="mr-1"
               />
               <Image
                 src={`/images/${ingredients[1].toLowerCase().replace(' ', '_')}.png`}
                 alt={ingredients[1]}
-                width={30}
-                height={30}
-                className="mr-2"
+                width={20}
+                height={20}
+                className="mr-1"
               />
-              <span>{`${ingredients[0]} + ${ingredients[1]} = ${recipe}`}</span>
+              <span className="text-sm">{`${ingredients[0]} + ${ingredients[1]} = ${recipe}`}</span>
             </div>
             <Checkbox
               className='border-white'
@@ -354,12 +353,12 @@ export default function SmoothieRecipeApp() {
       </ul>
 
       <div className="flex justify-between items-center mb-2">
-        <h2 className="text-2xl font-bold">All Recipes</h2>
-        <div className="text-xl font-semibold">
+        <h2 className="text-xl font-bold">All Recipes</h2>
+        <div className="text-lg font-semibold">
           {finishedRecipes} / {sortedRecipes.length}
         </div>
       </div>
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
         {sortedRecipes.map(recipe => (
           <TooltipProvider key={recipe}>
             <Tooltip>
@@ -376,13 +375,13 @@ export default function SmoothieRecipeApp() {
                       onCheckedChange={() => toggleRecipe(recipe)}
                       className="mr-2 border-white"
                     />
-                    <label htmlFor={recipe}>{recipe}</label>
+                    <label htmlFor={recipe} className="text-sm">{recipe}</label>
                   </div>
                   <Image
                     src={`/images/${recipe.toLowerCase().replace(/\s+/g, '_')}.png`}
                     alt={recipe}
-                    width={30}
-                    height={30}
+                    width={20}
+                    height={20}
                   />
                 </div>
               </TooltipTrigger>
@@ -390,7 +389,7 @@ export default function SmoothieRecipeApp() {
                 <p>Ingredients:</p>
                 <ul>
                   {getRecipeIngredients(recipe).map((ingredientPair, index) => (
-                    <li key={index}>{ingredientPair}</li>
+                    <li key={index} className="text-sm">{ingredientPair}</li>
                   ))}
                 </ul>
               </TooltipContent>
