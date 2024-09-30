@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { useToast } from "@/hooks/use-toast"
+import warming_potion from '/warmpotion.png'
 
 const ingredients = [
   'Bubble Kelp', 'RiverHorse', 'Refreshing Grapes', 'Electro Apple',
@@ -288,7 +289,7 @@ export default function SmoothieRecipeApp() {
         {ingredients.map(ingredient => (
           <div key={ingredient} className="bg-gray-800 p-4 rounded shadow">
             <Image
-              src={`/static/images/${ingredient.toLowerCase().replace(' ', '_')}.png`}
+              src={`/static/images/${ingredient.replace(' ', '_')}.png`}
               alt={ingredient}
               width={100}
               height={100}
@@ -329,14 +330,14 @@ export default function SmoothieRecipeApp() {
           <li key={recipe} className="flex items-center justify-between bg-gray-800 p-2 rounded">
             <div className="flex items-center">
               <Image
-                src={`/static/images/${ingredients[0].toLowerCase().replace(' ', '_')}.png`}
+                src={`/static/images/${ingredients[0].replace(' ', '_')}.png`}
                 alt={ingredients[0]}
                 width={20}
                 height={20}
                 className="mr-1"
               />
               <Image
-                src={`/static/images/${ingredients[1].toLowerCase().replace(' ', '_')}.png`}
+                src={`/static/images/${ingredients[1].replace(' ', '_')}.png`}
                 alt={ingredients[1]}
                 width={20}
                 height={20}
@@ -379,7 +380,7 @@ export default function SmoothieRecipeApp() {
                     <label htmlFor={recipe} className="text-sm">{recipe}</label>
                   </div>
                   <Image
-                    src={`/static/images/${recipe.toLowerCase().replace(/\s+/g, '_')}.png`}
+                    src={`/static/images/${recipe.replace(/\s+/g, '_')}.png`}
                     alt={recipe}
                     width={20}
                     height={20}
