@@ -10,7 +10,7 @@ import { useToast } from "@/hooks/use-toast"
 import warming_potion from '/warmpotion.png'
 
 const ingredients = [
-  'Bubble Kelp', 'RiverHorse', 'Refreshing Grapes', 'Electro Apple',
+  'Bubble Kelp', 'Riverhorse', 'Refreshing Grapes', 'Electro Apple',
   'Warm Pepper', 'Floral Nectar', 'Fresh Milk', 'Chilly Cactus',
   'Rocktato', 'Rock Salt', 'Radiant Butter', 'Twisted Pumpkin',
   'Monster Guts', 'Monster Fang', 'Tough Mango', 'Golden Egg'
@@ -19,7 +19,7 @@ const ingredients = [
 const recipeMap = {
   'Bubble Kelp': {
     'Bubble Kelp': 'Bubble Smoothie',
-    'RiverHorse': 'Rapid Smoothie',
+    'Riverhorse': 'Rapid Smoothie',
     'Refreshing Grapes': 'Mixed Bubble Smoothie',
     'Electro Apple': 'Mixed Bubble Smoothie',
     'Fresh Milk': 'Milky Bubble Smoothie',
@@ -31,8 +31,8 @@ const recipeMap = {
     'Tough Mango': 'Mixed Tough Smoothie',
     'Golden Egg': 'Golden Bubble Smoothie'
   },
-  'RiverHorse': {
-    'RiverHorse': 'Rapid Smoothie',
+  'Riverhorse': {
+    'Riverhorse': 'Rapid Smoothie',
     'Refreshing Grapes': 'Refreshing Mixed Smoothie',
     'Electro Apple': 'Mixed Apple Smoothie',
     'Warm Pepper': 'Rapid Smoothie',
