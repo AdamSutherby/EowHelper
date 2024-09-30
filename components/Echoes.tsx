@@ -7,13 +7,13 @@ import { useToast } from "@/hooks/use-toast"
 
 const echoesItems = [
   "Table", "Old Bed", "Soft Bed", "Zelda's Bed", "Decorative Shrub", "Wooden Box", "Pot",
-  "Hyrule Castle Pot", "Gerudo Pot", "Boulder", "Rock Lava Rock", "Ice Block", "Snowball",
+  "Hyrule Castle Pot", "Gerudo Pot", "Boulder", "Rock", "Lava Rock", "Ice Block", "Snowball",
   "Sign", "Grilled Fish", "Meat", "Rock Roast", "Stuffed Toy", "Carrot", "Water Block",
   "Elephant Statue", "Hawk Statue", "Cat Statue", "Snake Statue", "Ancient Orb", "Trampoline",
   "Wind Cannon", "Flying Tile", "Cloud", "Spiked Roller", "Beetle Mound", "Firework", "Brazier",
   "Zol", "Ignizol", "Hydrozol", "Buzz Blob", "Spear Moblin", "Spear Moblin lv. 2", "Sword Moblin",
   "Sword Moblin Lv. 2", "Sword Moblin Lv. 3", "Club Boarblin", "Club Boarblin Lv. 2",
-  "Boomerang Boarblin", "Lynel", "Lizalfos", "Lizalfos Lv. 2", "Lizalfos Lv. 3", "Darknut",
+  "Boomerang Boarblin", "Boomerang Boarblin Lv. 2", "Lynel", "Lizalfos", "Lizalfos Lv. 2", "Lizalfos Lv. 3", "Darknut",
   "Darknut Lv. 2", "Darknut Lv. 3", "Armos", "Ball-and-Chain Trooper", "Gibdo", "Gibdo Lv. 2",
   "ReDead", "Fire Wizzrobe", "Ice Wizzrobe", "Electric Wizzrobe", "Caromadillo", "Caromadillo Lv. 2",
   "Rope", "Tornando", "Ribbitune", "Drippitune", "Torch Slug", "Freeze Slug", "Holmill", "Wolfos",
@@ -27,60 +27,67 @@ const echoesItems = [
 ]
 
 export default function EchoesChecklist() {
-    const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>({})
-    const [searchTerm, setSearchTerm] = useState('')
-    const { toast } = useToast()
-  
-    const filteredAndSortedItems = useMemo(() => {
-      const filtered = echoesItems.filter(item => 
-        item.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-      return filtered.sort((a, b) => {
-        if (checkedItems[a] === checkedItems[b]) {
-          return echoesItems.indexOf(a) - echoesItems.indexOf(b) // Maintain original order
-        }
-        return checkedItems[a] ? 1 : -1 // Move checked items to the bottom
-      })
-    }, [searchTerm, checkedItems])
-  
-    const handleCheck = (item: string) => {
-      setCheckedItems(prev => {
-        const newState = { ...prev, [item]: !prev[item] }
-        if (newState[item]) {
-          toast({
-            title: `${item} obtained!`,
-            duration: 1000,
-          })
-        }
-        return newState
-      })
-    }
-  
-    return (
-      <div className="bg-gray-900 text-white rounded-lg shadow-lg h-full flex flex-col">
-        <div className="sticky top-0 bg-gray-900 z-10 p-4">
-          <h2 className="text-2xl font-bold mb-4">Echoes Checklist</h2>
-          <Input
-            type="text"
-            placeholder="Search items..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="mb-4 bg-gray-800 text-white"
-          />
-        </div>
-        <div className="space-y-2 flex-grow overflow-y-auto custom-scrollbar p-4">
-          {filteredAndSortedItems.map(item => (
-            <div key={item} className={`flex items-center hover:bg-gray-800 p-2 rounded transition-colors duration-200 ${checkedItems[item] ? 'opacity-50' : ''}`}>
-              <Checkbox
-                id={`echoes-${item}`}
-                checked={checkedItems[item] || false}
-                onCheckedChange={() => handleCheck(item)}
-                className="mr-2 border-white"
-              />
-              <label htmlFor={`echoes-${item}`} className="text-sm cursor-pointer flex-grow">{item}</label>
-            </div>
-          ))}
-        </div>
-      </div>
+  const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>({})
+  const [searchTerm, setSearchTerm] = useState('')
+  const { toast } = useToast()
+
+  const filteredAndSortedItems = useMemo(() => {
+    const filtered = echoesItems.filter(item => 
+      item.toLowerCase().includes(searchTerm.toLowerCase())
     )
+    return filtered.sort((a, b) => {
+      if (checkedItems[a] === checkedItems[b]) {
+        return echoesItems.indexOf(a) - echoesItems.indexOf(b)
+      }
+      return checkedItems[a] ? 1 : -1
+    })
+  }, [searchTerm, checkedItems])
+
+  const completedCount = useMemo(() => {
+    return Object.values(checkedItems).filter(Boolean).length
+  }, [checkedItems])
+
+  const handleCheck = (item: string) => {
+    setCheckedItems(prev => {
+      const newState = { ...prev, [item]: !prev[item] }
+      if (newState[item]) {
+        toast({
+          title: `${item} obtained!`,
+          duration: 1000,
+        })
+      }
+      return newState
+    })
   }
+
+  return (
+    <div className="bg-gray-900 text-white rounded-lg shadow-lg h-full flex flex-col">
+      <div className="sticky top-0 bg-gray-900 z-10 p-4">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-bold">Echoes Checklist</h2>
+          <span className="text-lg font-semibold">{completedCount} / {echoesItems.length}</span>
+        </div>
+        <Input
+          type="text"
+          placeholder="Search items..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="mb-4 bg-gray-800 text-white"
+        />
+      </div>
+      <div className="space-y-2 flex-grow overflow-y-auto custom-scrollbar p-4">
+        {filteredAndSortedItems.map(item => (
+          <div key={item} className={`flex items-center hover:bg-gray-800 p-2 rounded transition-colors duration-200 ${checkedItems[item] ? 'opacity-50' : ''}`}>
+            <Checkbox
+              id={`echoes-${item}`}
+              checked={checkedItems[item] || false}
+              onCheckedChange={() => handleCheck(item)}
+              className="mr-2 border-white"
+            />
+            <label htmlFor={`echoes-${item}`} className="text-sm cursor-pointer flex-grow">{item}</label>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
