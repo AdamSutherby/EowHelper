@@ -37,9 +37,9 @@ export default function EchoesChecklist() {
       )
       return filtered.sort((a, b) => {
         if (checkedItems[a] === checkedItems[b]) {
-          return a.localeCompare(b)
+          return echoesItems.indexOf(a) - echoesItems.indexOf(b) // Maintain original order
         }
-        return checkedItems[a] ? 1 : -1
+        return checkedItems[a] ? 1 : -1 // Move checked items to the bottom
       })
     }, [searchTerm, checkedItems])
   
