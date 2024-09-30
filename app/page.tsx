@@ -3,7 +3,7 @@ import EchoesChecklist from "../components/Echoes";
 import QuestsChecklist from "../components/quests";
 
 
-export function Page() {
+export default function AppLayout() {
   return (
     <div className="flex flex-col md:flex-row h-screen bg-gray-900 text-white overflow-hidden">
       <div className="w-full md:w-1/4 p-4 overflow-y-auto custom-scrollbar">
@@ -18,5 +18,3 @@ export function Page() {
     </div>
   )
 }
-
-export default Page;
