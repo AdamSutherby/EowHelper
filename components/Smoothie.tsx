@@ -280,6 +280,19 @@ export default function SmoothieRecipeApp() {
 
   return (
     <div className="bg-gray-900 text-white rounded-lg shadow-lg">
+    <style jsx global>{`
+        /* Remove spinner for webkit browsers like Chrome, Safari */
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+          -webkit-appearance: none; 
+          margin: 0; 
+        }
+        
+        /* Remove spinner for Firefox */
+        input[type=number] {
+          -moz-appearance: textfield;
+        }
+      `}</style>
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold">Smoothie Recipe App</h1>
         <Button onClick={resetApp} variant="outline" className='text-black'>Reset</Button>
